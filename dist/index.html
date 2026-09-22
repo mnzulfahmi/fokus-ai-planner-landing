@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fokus — AI task planning that thinks ahead</title>
+  <meta name="description" content="Fokus uses AI priority scoring, clear tradeoffs, and timely reminders to help you choose what matters now.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23131313'/%3E%3Cpath d='M18 18h28v8H28v8h14v8H28v12H18z' fill='%23f6ff58'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #111111;
+      --paper: #f4f1ea;
+      --white: #fffef9;
+      --acid: #e9ff54;
+      --orange: #ff6f3c;
+      --blue: #6888ff;
+      --muted: #68665f;
+      --line: rgba(17,17,17,.16);
+      --shadow: 0 28px 70px rgba(17,17,17,.14);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 84% 13%, rgba(233,255,84,.8), transparent 24rem),
+        linear-gradient(135deg, #f8f6f0 0%, var(--paper) 58%, #ece8df 100%);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .32;
+      background-image: radial-gradient(rgba(17,17,17,.11) .65px, transparent .65px);
+      background-size: 7px 7px;
+      mask-image: linear-gradient(to bottom, black, transparent 80%);
+    }
+
+    button, a { font: inherit; }
+    a { color: inherit; }
+
+    .page-shell {
+      width: min(1440px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 26px clamp(22px, 4vw, 66px) 46px;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 20px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.16rem;
+      font-weight: 900;
+      letter-spacing: -.045em;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--acid);
+      font-size: .85rem;
+      transform: rotate(-8deg);
+      box-shadow: 4px 4px 0 var(--acid);
+    }
+
+    .nav-note {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: .88rem;
+      font-weight: 650;
+    }
+
+    .nav-note::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #42b576;
+      box-shadow: 0 0 0 5px rgba(66,181,118,.13);
+      animation: breathe 2.3s ease-in-out infinite;
+    }
+
+    .hero {
+      min-height: calc(100vh - 85px);
+      display: grid;
+      grid-template-columns: minmax(0, .93fr) minmax(500px, 1.07fr);
+      gap: clamp(48px, 6.2vw, 98px);
+      align-items: center;
+      padding: clamp(54px, 7vw, 108px) 0 34px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 26px;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      font-size: .75rem;
+      font-weight: 850;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 42px;
+      height: 2px;
+      background: var(--ink);
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(4.25rem, 7.4vw, 7.8rem);
+      line-height: .82;
+      letter-spacing: -.088em;
+      font-weight: 950;
+    }
+
+    .headline-accent {
+      position: relative;
+      display: inline-block;
+      padding: 0 .08em .06em .01em;
+      z-index: 0;
+    }
+
+    .headline-accent::after {
+      content: "";
+      position: absolute;
+      left: -.02em;
+      right: -.05em;
+      bottom: .02em;
+      height: .27em;
+      background: var(--acid);
+      transform: rotate(-1.5deg) scaleX(0);
+      transform-origin: left;
+      z-index: -1;
+      animation: swipe 1s .35s cubic-bezier(.2,.85,.25,1) forwards;
+    }
+
+    .intro {
+      max-width: 590px;
+      margin: 34px 0 0;
+      color: #4d4b45;
+      font-size: clamp(1.06rem, 1.4vw, 1.28rem);
+      line-height: 1.55;
+      letter-spacing: -.018em;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 36px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      min-height: 54px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 0 22px;
+      border: 1px solid var(--ink);
+      border-radius: 2px;
+      background: transparent;
+      color: var(--ink);
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
+    }
+
+    .button.primary {
+      background: var(--ink);
+      color: var(--white);
+      box-shadow: 6px 6px 0 var(--orange);
+    }
+
+    .button:hover { transform: translate(-2px, -2px); }
+    .button.primary:hover { box-shadow: 9px 9px 0 var(--orange); }
+    .button:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+
+    .arrow { font-size: 1.25rem; transition: transform .2s ease; }
+    .button:hover .arrow { transform: translateX(4px); }
+
+    .proof {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-top: 44px;
+      color: var(--muted);
+      font-size: .84rem;
+      font-weight: 650;
+    }
+
+    .proof strong { color: var(--ink); font-size: 1rem; }
+    .proof-line { width: 1px; height: 28px; background: var(--line); }
+
+    .visual-wrap {
+      position: relative;
+      min-height: 640px;
+      display: grid;
+      place-items: center;
+      perspective: 1200px;
+    }
+
+    .orbit {
+      position: absolute;
+      width: min(680px, 105%);
+      aspect-ratio: 1;
+      border: 1px solid rgba(17,17,17,.13);
+      border-radius: 50%;
+      animation: orbit 28s linear infinite;
+    }
+
+    .orbit::before,
+    .orbit::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: var(--orange);
+    }
+
+    .orbit::before { width: 18px; height: 18px; top: 10%; left: 16%; }
+    .orbit::after { width: 10px; height: 10px; right: 7%; bottom: 25%; background: var(--blue); }
+
+    .app {
+      position: relative;
+      width: min(630px, 100%);
+      min-height: 545px;
+      display: grid;
+      grid-template-columns: 42% 58%;
+      overflow: hidden;
+      background: rgba(255,254,249,.94);
+      border: 1px solid rgba(17,17,17,.82);
+      box-shadow: var(--shadow), 12px 12px 0 rgba(17,17,17,.9);
+      transform: rotateY(-4deg) rotateX(2deg);
+      animation: float 6s ease-in-out infinite;
+      backdrop-filter: blur(18px);
+    }
+
+    .app::after {
+      content: "";
+      position: absolute;
+      inset: -40% 0 auto;
+      height: 38%;
+      background: linear-gradient(to bottom, transparent, rgba(233,255,84,.26), transparent);
+      pointer-events: none;
+      animation: scan 6s ease-in-out infinite;
+    }
+
+    .sidebar {
+      padding: 22px;
+      background: #171717;
+      color: var(--white);
+    }
+
+    .app-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 34px;
+    }
+
+    .mini-brand { font-size: .84rem; font-weight: 900; letter-spacing: -.04em; }
+    .avatar { width: 29px; height: 29px; border-radius: 50%; background: var(--acid); color: var(--ink); display: grid; place-items: center; font-size: .68rem; font-weight: 900; }
+
+    .date-label { color: #98958d; font-size: .7rem; text-transform: uppercase; letter-spacing: .13em; font-weight: 800; }
+    .today-title { margin: 7px 0 18px; font-size: 1.8rem; letter-spacing: -.055em; }
+    .task-list { display: grid; gap: 10px; }
+
+    .task-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: 32px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 10px;
+      border: 1px solid rgba(255,255,255,.13);
+      background: rgba(255,255,255,.055);
+      transition: transform .7s cubic-bezier(.2,.75,.25,1), background-color .35s ease, border-color .35s ease;
+    }
+
+    .task-card.active { background: rgba(233,255,84,.12); border-color: rgba(233,255,84,.42); }
+    .rank { color: var(--acid); font-size: .67rem; font-weight: 900; }
+    .task-name { font-size: .78rem; line-height: 1.25; font-weight: 760; }
+    .task-time { display: block; color: #9b9991; font-size: .62rem; margin-top: 3px; font-weight: 550; }
+    .score { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); display: grid; place-items: center; font-size: .66rem; font-weight: 900; }
+    .active .score { background: var(--acid); color: var(--ink); border-color: var(--acid); }
+
+    .sync {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #aaa79f;
+      font-size: .67rem;
+      font-weight: 700;
+    }
+
+    .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: #42b576; animation: breathe 1.6s ease-in-out infinite; }
+
+    .insight {
+      position: relative;
+      padding: 22px 22px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .insight-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .insight-kicker { color: var(--muted); font-size: .68rem; font-weight: 850; text-transform: uppercase; letter-spacing: .12em; }
+    .ai-state { display: inline-flex; align-items: center; gap: 6px; padding: 7px 9px; border: 1px solid var(--line); font-size: .62rem; font-weight: 800; }
+    .spark { color: var(--orange); animation: spin 3s linear infinite; }
+
+    .focus-title { margin: 38px 0 8px; font-size: clamp(1.55rem, 2.5vw, 2.15rem); line-height: 1.04; letter-spacing: -.055em; }
+    .focus-meta { color: var(--muted); font-size: .72rem; font-weight: 700; }
+
+    .score-row { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 14px; margin: 24px 0 30px; }
+    .big-score { font-size: 2.95rem; line-height: 1; font-weight: 950; letter-spacing: -.08em; }
+    .score-copy { color: var(--muted); font-size: .68rem; line-height: 1.45; }
+    .meter { grid-column: 1 / -1; height: 5px; overflow: hidden; background: #e0ddd4; }
+    .meter-fill { width: 92%; height: 100%; background: linear-gradient(90deg, var(--orange), var(--acid)); transform-origin: left; animation: meter 4.5s ease-in-out infinite; }
+
+    .tradeoffs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tradeoff { padding: 13px; border: 1px solid var(--line); }
+    .tradeoff.pro { background: rgba(233,255,84,.22); }
+    .tradeoff.con { background: rgba(255,111,60,.09); }
+    .tradeoff-label { display: flex; align-items: center; gap: 6px; font-size: .64rem; font-weight: 900; text-transform: uppercase; letter-spacing: .09em; }
+    .tradeoff p { margin: 9px 0 0; font-size: .68rem; line-height: 1.4; color: #54514b; }
+
+    .reminder {
+      margin-top: auto;
+      padding-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--line);
+      font-size: .68rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .channels { display: flex; gap: 4px; }
+    .channel { min-width: 27px; height: 24px; display: grid; place-items: center; border: 1px solid var(--line); color: var(--ink); font-size: .62rem; background: var(--white); }
+
+    .signal-card {
+      position: absolute;
+      z-index: 3;
+      right: -24px;
+      bottom: 40px;
+      width: 190px;
+      padding: 14px 16px;
+      border: 1px solid var(--ink);
+      background: var(--acid);
+      box-shadow: 7px 7px 0 var(--ink);
+      animation: drift 5s 1s ease-in-out infinite;
+    }
+
+    .signal-label { font-size: .62rem; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; }
+    .signal-copy { margin: 6px 0 0; font-size: .8rem; line-height: 1.25; font-weight: 800; }
+
+    .replay {
+      position: absolute;
+      z-index: 3;
+      top: 24px;
+      left: -23px;
+      border: 1px solid var(--ink);
+      background: var(--white);
+      min-height: 42px;
+      padding: 0 13px;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 var(--blue);
+      font-weight: 850;
+      font-size: .71rem;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .replay:hover { transform: translateY(-2px); }
+    .replay:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+
+    @keyframes swipe { to { transform: rotate(-1.5deg) scaleX(1); } }
+    @keyframes float { 0%,100% { transform: rotateY(-4deg) rotateX(2deg) translateY(0); } 50% { transform: rotateY(-2deg) rotateX(1deg) translateY(-10px); } }
+    @keyframes drift { 0%,100% { transform: translate(0,0) rotate(1deg); } 50% { transform: translate(-7px,-9px) rotate(-1deg); } }
+    @keyframes orbit { to { transform: rotate(360deg); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes scan { 0%,22% { transform: translateY(-20%); opacity: 0; } 44% { opacity: 1; } 72%,100% { transform: translateY(450%); opacity: 0; } }
+    @keyframes breathe { 0%,100% { opacity: .45; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
+    @keyframes meter { 0%,100% { transform: scaleX(.76); } 45%,70% { transform: scaleX(1); } }
+    @keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.07) rotate(-.5deg); } 100% { transform: scale(1); } }
+
+    .app.bump { animation: bump .72s ease, float 6s .72s ease-in-out infinite; }
+
+    @media (max-width: 1050px) {
+      .hero { grid-template-columns: 1fr; padding-top: 70px; }
+      .hero-copy { max-width: 830px; }
+      h1 { font-size: clamp(4.5rem, 12vw, 7.4rem); }
+      .visual-wrap { min-height: 610px; width: min(720px, 100%); margin: 0 auto; }
+    }
+
+    @media (max-width: 680px) {
+      .page-shell { padding: 20px 18px 34px; }
+      .nav-note { font-size: .74rem; }
+      .hero { gap: 48px; padding-top: 52px; }
+      h1 { font-size: clamp(3.7rem, 18vw, 5.2rem); }
+      .intro { margin-top: 26px; }
+      .actions { align-items: stretch; flex-direction: column; }
+      .button { width: 100%; }
+      .proof { gap: 12px; }
+      .visual-wrap { min-height: auto; display: block; padding: 10px 0 70px; }
+      .orbit { width: 115%; left: -8%; top: -4%; }
+      .app { width: 100%; min-height: 0; grid-template-columns: 1fr; transform: none; animation: none; box-shadow: 8px 8px 0 var(--ink); }
+      .sidebar { padding: 18px; }
+      .task-list { grid-template-columns: 1fr 1fr; }
+      .task-card { grid-template-columns: 25px 1fr; }
+      .score { display: none; }
+      .insight { min-height: 420px; padding: 20px 18px; }
+      .focus-title { margin-top: 28px; }
+      .signal-card { right: 2px; bottom: 12px; }
+      .replay { left: auto; right: 10px; top: -12px; }
+    }
+
+    @media (max-width: 420px) {
+      .nav-note span { display: none; }
+      .proof { align-items: flex-start; flex-direction: column; }
+      .proof-line { width: 48px; height: 1px; }
+      .task-list { grid-template-columns: 1fr; }
+      .tradeoffs { grid-template-columns: 1fr; }
+      .signal-card { width: 174px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+      .app { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="Fokus home">
+        <span class="brand-mark" aria-hidden="true">F</span>
+        FOKUS
+      </a>
+      <div class="nav-note"><span>AI prioritization is ready</span></div>
+    </nav>
+
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">The planner that thinks with you</p>
+        <h1 id="hero-title">Do what matters. <span class="headline-accent">First.</span></h1>
+        <p class="intro">Fokus weighs urgency, effort, and tradeoffs to turn a crowded task list into one clear next move—then reminds you before it slips.</p>
+
+        <div class="actions">
+          <a class="button primary" href="#planner">Explore the planner <span class="arrow" aria-hidden="true">→</span></a>
+          <button class="button" id="reorderButton" type="button">Watch AI sort</button>
+        </div>
+
+        <div class="proof" aria-label="Product highlights">
+          <span><strong>01</strong> AI-ranked priorities</span>
+          <span class="proof-line" aria-hidden="true"></span>
+          <span><strong>02</strong> Editable pro / con analysis</span>
+        </div>
+      </div>
+
+      <div class="visual-wrap" id="planner" aria-label="Animated preview of the Fokus task planner">
+        <div class="orbit" aria-hidden="true"></div>
+        <button class="replay" id="replayButton" type="button" aria-label="Replay AI task prioritization">↻ Re-rank</button>
+
+        <article class="app" id="appPreview">
+          <section class="sidebar" aria-label="Today's prioritized tasks">
+            <div class="app-top">
+              <div class="mini-brand">FOKUS / TODAY</div>
+              <div class="avatar" aria-label="User profile">RA</div>
+            </div>
+            <div class="date-label">Monday · 22 September</div>
+            <h2 class="today-title">Your next moves</h2>
+
+            <div class="task-list" id="taskList">
+              <div class="task-card active" data-task="proposal">
+                <span class="rank">01</span>
+                <span class="task-name">Send proposal deck<span class="task-time">Due today · 4:00 PM</span></span>
+                <span class="score">92</span>
+              </div>
+              <div class="task-card" data-task="research">
+                <span class="rank">02</span>
+                <span class="task-name">Research user feedback<span class="task-time">Due tomorrow</span></span>
+                <span class="score">78</span>
+              </div>
+              <div class="task-card" data-task="dentist">
+                <span class="rank">03</span>
+                <span class="task-name">Book dentist<span class="task-time">Due Friday</span></span>
+                <span class="score">54</span>
+              </div>
+            </div>
+
+            <div class="sync"><span class="sync-dot"></span><span id="syncText">Priorities synced</span></div>
+          </section>
+
+          <section class="insight" aria-label="AI task analysis">
+            <div class="insight-head">
+              <span class="insight-kicker">AI focus brief</span>
+              <span class="ai-state"><span class="spark" aria-hidden="true">✦</span> analysis ready</span>
+            </div>
+
+            <h2 class="focus-title" id="focusTitle">Send proposal deck</h2>
+            <div class="focus-meta" id="focusMeta">Client work · Due in 2h 14m</div>
+
+            <div class="score-row">
+              <div class="big-score" id="bigScore">92</div>
+              <div class="score-copy">priority score<br>based on 6 signals</div>
+              <div class="meter" aria-hidden="true"><div class="meter-fill" id="meterFill"></div></div>
+            </div>
+
+            <div class="tradeoffs">
+              <div class="tradeoff pro">
+                <div class="tradeoff-label">↑ Upside</div>
+                <p id="proText">Unblocks the client decision and keeps this week’s timeline intact.</p>
+              </div>
+              <div class="tradeoff con">
+                <div class="tradeoff-label">↓ Watch out</div>
+                <p id="conText">Needs 45 focused minutes before the afternoon calendar fills up.</p>
+              </div>
+            </div>
+
+            <div class="reminder">
+              <span id="reminderText">Reminder set for 3:10 PM</span>
+              <span class="channels" aria-label="Reminder channels"><span class="channel">APP</span><span class="channel">✉</span></span>
+            </div>
+          </section>
+        </article>
+
+        <aside class="signal-card" aria-live="polite">
+          <div class="signal-label">Priority shift</div>
+          <p class="signal-copy" id="signalCopy">Deadline moved closer. Score increased to 92.</p>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const scenarios = [
+      {
+        order: ['proposal', 'research', 'dentist'], active: 'proposal',
+        title: 'Send proposal deck', meta: 'Client work · Due in 2h 14m', score: 92,
+        pro: 'Unblocks the client decision and keeps this week’s timeline intact.',
+        con: 'Needs 45 focused minutes before the afternoon calendar fills up.',
+        reminder: 'Reminder set for 3:10 PM', signal: 'Deadline moved closer. Score increased to 92.'
+      },
+      {
+        order: ['research', 'proposal', 'dentist'], active: 'research',
+        title: 'Research user feedback', meta: 'Product work · 8 notes waiting', score: 86,
+        pro: 'Clarifies the top customer friction before tomorrow’s planning session.',
+        con: 'A broad review may expand beyond the 30-minute timebox.',
+        reminder: 'Reminder set for 10:30 AM', signal: 'New dependency detected. Research moved to the top.'
+      },
+      {
+        order: ['proposal', 'dentist', 'research'], active: 'dentist',
+        title: 'Book dentist', meta: 'Personal · Availability is limited', score: 81,
+        pro: 'Booking now secures the only suitable slot left this week.',
+        con: 'Five minutes now interrupts a longer focus block.',
+        reminder: 'Reminder set for 12:00 PM', signal: 'Limited availability raised this task’s urgency.'
+      }
+    ];
+
+    const taskList = document.getElementById('taskList');
+    const appPreview = document.getElementById('appPreview');
+    const syncText = document.getElementById('syncText');
+    let scenarioIndex = 0;
+    let autoTimer;
+
+    function renderScenario(nextIndex) {
+      scenarioIndex = nextIndex % scenarios.length;
+      const data = scenarios[scenarioIndex];
+      syncText.textContent = 'AI is re-ranking…';
+      appPreview.classList.remove('bump');
+      void appPreview.offsetWidth;
+      appPreview.classList.add('bump');
+
+      data.order.forEach((id, index) => {
+        const card = taskList.querySelector(`[data-task="${id}"]`);
+        card.style.order = index;
+        card.querySelector('.rank').textContent = `0${index + 1}`;
+        card.classList.toggle('active', id === data.active);
+      });
+
+      document.getElementById('focusTitle').textContent = data.title;
+      document.getElementById('focusMeta').textContent = data.meta;
+      document.getElementById('bigScore').textContent = data.score;
+      document.getElementById('meterFill').style.width = `${data.score}%`;
+      document.getElementById('proText').textContent = data.pro;
+      document.getElementById('conText').textContent = data.con;
+      document.getElementById('reminderText').textContent = data.reminder;
+      document.getElementById('signalCopy').textContent = data.signal;
+
+      window.setTimeout(() => { syncText.textContent = 'Priorities synced'; }, 650);
+    }
+
+    function advance() {
+      renderScenario(scenarioIndex + 1);
+      window.clearInterval(autoTimer);
+      autoTimer = window.setInterval(() => renderScenario(scenarioIndex + 1), 5600);
+    }
+
+    document.getElementById('replayButton').addEventListener('click', advance);
+    document.getElementById('reorderButton').addEventListener('click', () => {
+      document.getElementById('planner').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      window.setTimeout(advance, 300);
+    });
+
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      autoTimer = window.setInterval(() => renderScenario(scenarioIndex + 1), 5600);
+    }
+  </script>
+</body>
+</html>
