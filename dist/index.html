@@ -3,19 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fokus — AI task planning that thinks ahead</title>
+  <title>Fokus - AI task planning that thinks ahead</title>
   <meta name="description" content="Fokus uses AI priority scoring, clear tradeoffs, and timely reminders to help you choose what matters now.">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23131313'/%3E%3Cpath d='M18 18h28v8H28v8h14v8H28v12H18z' fill='%23f6ff58'/%3E%3C/svg%3E">
+  <script>document.documentElement.classList.add('js')</script>
   <style>
     :root {
-      color-scheme: light;
+      color-scheme: light dark;
       --ink: #111111;
-      --paper: #f4f1ea;
+      --paper: #f2f2ed;
       --white: #fffef9;
       --acid: #e9ff54;
-      --orange: #ff6f3c;
-      --blue: #6888ff;
-      --muted: #68665f;
+      --muted: #5f5f58;
+      --surface: #fffef9;
+      --surface-2: #e8e8e1;
       --line: rgba(17,17,17,.16);
       --shadow: 0 28px 70px rgba(17,17,17,.14);
     }
@@ -25,13 +26,13 @@
     body {
       margin: 0;
       min-width: 320px;
-      min-height: 100vh;
+      min-height: 100dvh;
       overflow-x: hidden;
       color: var(--ink);
       background:
         radial-gradient(circle at 84% 13%, rgba(233,255,84,.8), transparent 24rem),
-        linear-gradient(135deg, #f8f6f0 0%, var(--paper) 58%, #ece8df 100%);
-      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        linear-gradient(135deg, var(--surface) 0%, var(--paper) 58%, var(--surface-2) 100%);
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       font-size: 16px;
       -webkit-font-smoothing: antialiased;
     }
@@ -47,12 +48,12 @@
       mask-image: linear-gradient(to bottom, black, transparent 80%);
     }
 
-    button, a { font: inherit; }
+    button, a, input, select { font: inherit; }
     a { color: inherit; }
 
     .page-shell {
       width: min(1440px, 100%);
-      min-height: 100vh;
+      min-height: 100dvh;
       margin: 0 auto;
       padding: 26px clamp(22px, 4vw, 66px) 46px;
       position: relative;
@@ -91,32 +92,24 @@
       box-shadow: 4px 4px 0 var(--acid);
     }
 
-    .nav-note {
+    .nav-links {
       display: flex;
       align-items: center;
-      gap: 10px;
-      color: var(--muted);
-      font-size: .88rem;
-      font-weight: 650;
+      gap: clamp(18px, 3vw, 38px);
+      font-size: .82rem;
+      font-weight: 800;
     }
 
-    .nav-note::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #42b576;
-      box-shadow: 0 0 0 5px rgba(66,181,118,.13);
-      animation: breathe 2.3s ease-in-out infinite;
-    }
+    .nav-links a { text-decoration: none; }
+    .nav-links a:hover { text-decoration: underline; text-underline-offset: 5px; }
 
     .hero {
-      min-height: calc(100vh - 85px);
+      min-height: calc(100dvh - 85px);
       display: grid;
       grid-template-columns: minmax(0, .93fr) minmax(500px, 1.07fr);
       gap: clamp(48px, 6.2vw, 98px);
       align-items: center;
-      padding: clamp(54px, 7vw, 108px) 0 34px;
+      padding: clamp(48px, 6vw, 92px) 0 34px;
     }
 
     .eyebrow {
@@ -140,8 +133,8 @@
     h1 {
       max-width: 760px;
       margin: 0;
-      font-size: clamp(4.25rem, 7.4vw, 7.8rem);
-      line-height: .82;
+      font-size: clamp(4rem, 6.6vw, 6.8rem);
+      line-height: .86;
       letter-spacing: -.088em;
       font-weight: 950;
     }
@@ -170,7 +163,7 @@
     .intro {
       max-width: 590px;
       margin: 34px 0 0;
-      color: #4d4b45;
+      color: var(--muted);
       font-size: clamp(1.06rem, 1.4vw, 1.28rem);
       line-height: 1.55;
       letter-spacing: -.018em;
@@ -204,28 +197,16 @@
     .button.primary {
       background: var(--ink);
       color: var(--white);
-      box-shadow: 6px 6px 0 var(--orange);
+      box-shadow: 6px 6px 0 var(--acid);
     }
 
     .button:hover { transform: translate(-2px, -2px); }
-    .button.primary:hover { box-shadow: 9px 9px 0 var(--orange); }
-    .button:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+    .button.primary:hover { box-shadow: 9px 9px 0 var(--acid); }
+    .button:active { transform: translateY(1px) scale(.985); }
+    .button:focus-visible { outline: 3px solid var(--acid); outline-offset: 4px; box-shadow: 0 0 0 6px var(--ink); }
 
     .arrow { font-size: 1.25rem; transition: transform .2s ease; }
     .button:hover .arrow { transform: translateX(4px); }
-
-    .proof {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      margin-top: 44px;
-      color: var(--muted);
-      font-size: .84rem;
-      font-weight: 650;
-    }
-
-    .proof strong { color: var(--ink); font-size: 1rem; }
-    .proof-line { width: 1px; height: 28px; background: var(--line); }
 
     .visual-wrap {
       position: relative;
@@ -243,17 +224,6 @@
       border-radius: 50%;
       animation: orbit 28s linear infinite;
     }
-
-    .orbit::before,
-    .orbit::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      background: var(--orange);
-    }
-
-    .orbit::before { width: 18px; height: 18px; top: 10%; left: 16%; }
-    .orbit::after { width: 10px; height: 10px; right: 7%; bottom: 25%; background: var(--blue); }
 
     .app {
       position: relative;
@@ -341,7 +311,7 @@
     .insight-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .insight-kicker { color: var(--muted); font-size: .68rem; font-weight: 850; text-transform: uppercase; letter-spacing: .12em; }
     .ai-state { display: inline-flex; align-items: center; gap: 6px; padding: 7px 9px; border: 1px solid var(--line); font-size: .62rem; font-weight: 800; }
-    .spark { color: var(--orange); animation: spin 3s linear infinite; }
+    .spark { color: var(--ink); animation: spin 3s linear infinite; }
 
     .focus-title { margin: 38px 0 8px; font-size: clamp(1.55rem, 2.5vw, 2.15rem); line-height: 1.04; letter-spacing: -.055em; }
     .focus-meta { color: var(--muted); font-size: .72rem; font-weight: 700; }
@@ -350,12 +320,12 @@
     .big-score { font-size: 2.95rem; line-height: 1; font-weight: 950; letter-spacing: -.08em; }
     .score-copy { color: var(--muted); font-size: .68rem; line-height: 1.45; }
     .meter { grid-column: 1 / -1; height: 5px; overflow: hidden; background: #e0ddd4; }
-    .meter-fill { width: 92%; height: 100%; background: linear-gradient(90deg, var(--orange), var(--acid)); transform-origin: left; animation: meter 4.5s ease-in-out infinite; }
+    .meter-fill { width: 92%; height: 100%; background: var(--acid); transform-origin: left; animation: meter 4.5s ease-in-out infinite; }
 
     .tradeoffs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .tradeoff { padding: 13px; border: 1px solid var(--line); }
     .tradeoff.pro { background: rgba(233,255,84,.22); }
-    .tradeoff.con { background: rgba(255,111,60,.09); }
+    .tradeoff.con { background: rgba(17,17,17,.05); }
     .tradeoff-label { display: flex; align-items: center; gap: 6px; font-size: .64rem; font-weight: 900; text-transform: uppercase; letter-spacing: .09em; }
     .tradeoff p { margin: 9px 0 0; font-size: .68rem; line-height: 1.4; color: #54514b; }
 
@@ -383,6 +353,7 @@
       padding: 14px 16px;
       border: 1px solid var(--ink);
       background: var(--acid);
+      color: #111111;
       box-shadow: 7px 7px 0 var(--ink);
       animation: drift 5s 1s ease-in-out infinite;
     }
@@ -397,10 +368,11 @@
       left: -23px;
       border: 1px solid var(--ink);
       background: var(--white);
+      color: #111111;
       min-height: 42px;
       padding: 0 13px;
       cursor: pointer;
-      box-shadow: 4px 4px 0 var(--blue);
+      box-shadow: 4px 4px 0 var(--acid);
       font-weight: 850;
       font-size: .71rem;
       text-transform: uppercase;
@@ -408,7 +380,263 @@
     }
 
     .replay:hover { transform: translateY(-2px); }
-    .replay:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+    .replay:focus-visible { outline: 3px solid var(--acid); outline-offset: 3px; }
+
+    .section {
+      padding: clamp(96px, 12vw, 170px) 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-title {
+      max-width: 900px;
+      margin: 0;
+      font-size: clamp(3rem, 6vw, 6.5rem);
+      line-height: .92;
+      letter-spacing: -.07em;
+      font-weight: 950;
+    }
+
+    .section-copy {
+      max-width: 620px;
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.4vw, 1.22rem);
+      line-height: 1.55;
+    }
+
+    .feature-story {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(320px, .55fr);
+      gap: 0;
+      align-items: stretch;
+      margin-top: 70px;
+      border: 1px solid var(--ink);
+      background: var(--surface);
+      box-shadow: 10px 10px 0 var(--acid);
+    }
+
+    .feature-photo {
+      width: 100%;
+      height: 100%;
+      min-height: 520px;
+      object-fit: cover;
+      filter: saturate(.82) contrast(1.03);
+    }
+
+    .feature-story-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(28px, 4vw, 58px);
+      border-left: 1px solid var(--ink);
+    }
+
+    .feature-story-copy h3,
+    .feature-cell h3 {
+      margin: 0;
+      font-size: clamp(1.75rem, 3vw, 3rem);
+      line-height: 1;
+      letter-spacing: -.055em;
+    }
+
+    .feature-story-copy p,
+    .feature-cell p {
+      margin: 18px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .priority-rail {
+      margin-top: 46px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .priority-step {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    .priority-step strong { font-size: 1.2rem; color: var(--ink); }
+    .priority-step.is-next { background: var(--acid); padding-inline: 12px; border-bottom-color: var(--ink); }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 54px;
+    }
+
+    .feature-cell {
+      min-height: 390px;
+      padding: clamp(26px, 3.5vw, 48px);
+      border: 1px solid var(--ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .feature-cell.tradeoff-cell {
+      grid-column: span 7;
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .tradeoff-cell p { color: rgba(255,254,249,.7); }
+
+    .feature-cell.reminder-cell {
+      grid-column: span 5;
+      background: var(--acid);
+      color: #111111;
+      transform: translateY(44px);
+    }
+
+    .reminder-cell p { color: rgba(17,17,17,.72); }
+
+    .feature-cell.filter-cell {
+      grid-column: 3 / span 10;
+      min-height: 270px;
+      display: grid;
+      grid-template-columns: .8fr 1.2fr;
+      gap: 52px;
+      align-items: end;
+      background:
+        linear-gradient(90deg, transparent 49.8%, var(--line) 50%, transparent 50.2%),
+        var(--surface);
+    }
+
+    .tradeoff-demo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 36px;
+    }
+
+    .tradeoff-demo div {
+      min-height: 116px;
+      padding: 16px;
+      border: 1px solid rgba(255,254,249,.22);
+      font-size: .8rem;
+      line-height: 1.45;
+    }
+
+    .tradeoff-demo strong { display: block; color: var(--acid); margin-bottom: 9px; }
+
+    .reminder-demo {
+      display: grid;
+      gap: 12px;
+      margin-top: 36px;
+    }
+
+    .reminder-demo span {
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(17,17,17,.25);
+      font-size: .82rem;
+      font-weight: 850;
+    }
+
+    .filter-demo { display: flex; flex-wrap: wrap; gap: 8px; align-content: end; }
+    .filter-demo span { padding: 12px 14px; border: 1px solid var(--ink); font-size: .78rem; font-weight: 800; background: var(--surface-2); color: var(--ink); }
+
+    .pricing-head { max-width: 760px; }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      max-width: 1040px;
+      margin: 72px 0 0 auto;
+      align-items: start;
+    }
+
+    .price-plan {
+      position: relative;
+      min-height: 560px;
+      padding: clamp(28px, 4vw, 52px);
+      border: 1px solid var(--ink);
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .price-plan.plus { margin-top: 58px; box-shadow: 10px 10px 0 var(--acid); }
+    .plan-name { font-weight: 900; font-size: 1.2rem; }
+    .plan-price { display: flex; align-items: baseline; gap: 8px; margin: 42px 0 14px; }
+    .plan-price strong { font-size: clamp(4rem, 7vw, 6.7rem); line-height: .8; letter-spacing: -.08em; }
+    .plan-price span { color: var(--muted); font-size: .9rem; }
+    .plan-intro { color: var(--muted); line-height: 1.5; max-width: 32ch; }
+    .plan-list { list-style: none; padding: 0; margin: 44px 0; display: grid; gap: 16px; }
+    .plan-list li { display: grid; grid-template-columns: 18px 1fr; gap: 12px; line-height: 1.35; }
+    .plan-list li::before { content: "+"; font-weight: 950; }
+    .price-plan .button { margin-top: auto; align-self: stretch; }
+    .plan-note { position: absolute; top: 0; right: 0; padding: 10px 14px; background: var(--acid); color: #111111; font-size: .72rem; font-weight: 900; }
+
+    .lead-section { padding-bottom: 54px; }
+    .lead-shell {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(420px, 1.1fr);
+      border: 1px solid var(--ink);
+      background: var(--acid);
+      color: #111111;
+    }
+
+    .lead-copy { padding: clamp(34px, 6vw, 82px); }
+    .lead-copy h2 { margin: 0; max-width: 670px; font-size: clamp(3.5rem, 7vw, 7.2rem); line-height: .88; letter-spacing: -.08em; }
+    .lead-copy p { max-width: 490px; margin: 30px 0 0; font-size: 1.08rem; line-height: 1.55; color: rgba(17,17,17,.72); }
+
+    .lead-form-wrap {
+      min-height: 600px;
+      padding: clamp(30px, 5vw, 72px);
+      background: var(--surface);
+      color: var(--ink);
+      border-left: 1px solid var(--ink);
+      display: grid;
+      align-content: center;
+    }
+
+    .lead-form { display: grid; gap: 22px; }
+    .field { display: grid; gap: 8px; }
+    .field label { font-size: .82rem; font-weight: 900; }
+    .field input,
+    .field select {
+      width: 100%;
+      min-height: 54px;
+      padding: 0 14px;
+      border: 1px solid var(--ink);
+      border-radius: 0;
+      background: var(--surface);
+      color: var(--ink);
+    }
+
+    .field input::placeholder { color: #75756d; opacity: 1; }
+    .field input:focus,
+    .field select:focus { outline: 3px solid var(--acid); outline-offset: 2px; }
+    .field-error { min-height: 18px; color: #a52d20; font-size: .76rem; font-weight: 750; }
+    .form-note { margin: 0; color: var(--muted); font-size: .76rem; line-height: 1.45; }
+    .submit-button { position: relative; overflow: hidden; }
+    .submit-button[disabled] { cursor: wait; opacity: .78; }
+    .submit-button.is-loading::after { content: ""; position: absolute; inset: auto 0 0; height: 4px; background: var(--acid); transform-origin: left; animation: form-load .9s ease-in-out infinite; }
+
+    .form-success { display: none; }
+    .form-success.is-visible { display: block; }
+    .form-success h3 { margin: 0; font-size: clamp(2.4rem, 5vw, 4.8rem); line-height: .94; letter-spacing: -.06em; }
+    .form-success p { max-width: 420px; margin: 24px 0 0; color: var(--muted); line-height: 1.55; }
+
+    .site-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding-top: 30px;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .reveal { opacity: 1; transform: none; }
 
     @keyframes swipe { to { transform: rotate(-1.5deg) scaleX(1); } }
     @keyframes float { 0%,100% { transform: rotateY(-4deg) rotateX(2deg) translateY(0); } 50% { transform: rotateY(-2deg) rotateX(1deg) translateY(-10px); } }
@@ -419,25 +647,31 @@
     @keyframes breathe { 0%,100% { opacity: .45; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
     @keyframes meter { 0%,100% { transform: scaleX(.76); } 45%,70% { transform: scaleX(1); } }
     @keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.07) rotate(-.5deg); } 100% { transform: scale(1); } }
+    @keyframes form-load { 0% { transform: scaleX(.08); } 70% { transform: scaleX(.8); } 100% { transform: scaleX(1); } }
 
     .app.bump { animation: bump .72s ease, float 6s .72s ease-in-out infinite; }
 
     @media (max-width: 1050px) {
       .hero { grid-template-columns: 1fr; padding-top: 70px; }
       .hero-copy { max-width: 830px; }
-      h1 { font-size: clamp(4.5rem, 12vw, 7.4rem); }
+      h1 { max-width: 760px; font-size: clamp(4.4rem, 11vw, 6.8rem); }
       .visual-wrap { min-height: 610px; width: min(720px, 100%); margin: 0 auto; }
+      .feature-story { grid-template-columns: 1fr; }
+      .feature-photo { min-height: 460px; }
+      .feature-story-copy { border-left: 0; border-top: 1px solid var(--ink); }
+      .feature-cell.filter-cell { grid-column: 1 / -1; }
+      .lead-shell { grid-template-columns: 1fr; }
+      .lead-form-wrap { min-height: auto; border-left: 0; border-top: 1px solid var(--ink); }
     }
 
     @media (max-width: 680px) {
       .page-shell { padding: 20px 18px 34px; }
-      .nav-note { font-size: .74rem; }
+      .nav-links a:not(:last-child) { display: none; }
       .hero { gap: 48px; padding-top: 52px; }
-      h1 { font-size: clamp(3.7rem, 18vw, 5.2rem); }
+      h1 { font-size: clamp(3.45rem, 17vw, 5rem); }
       .intro { margin-top: 26px; }
       .actions { align-items: stretch; flex-direction: column; }
       .button { width: 100%; }
-      .proof { gap: 12px; }
       .visual-wrap { min-height: auto; display: block; padding: 10px 0 70px; }
       .orbit { width: 115%; left: -8%; top: -4%; }
       .app { width: 100%; min-height: 0; grid-template-columns: 1fr; transform: none; animation: none; box-shadow: 8px 8px 0 var(--ink); }
@@ -449,54 +683,94 @@
       .focus-title { margin-top: 28px; }
       .signal-card { right: 2px; bottom: 12px; }
       .replay { left: auto; right: 10px; top: -12px; }
+      .section { padding: 88px 0; }
+      .section-title { font-size: clamp(3rem, 15vw, 4.8rem); }
+      .feature-photo { min-height: 360px; }
+      .feature-grid { grid-template-columns: 1fr; gap: 14px; margin-top: 42px; }
+      .feature-cell.tradeoff-cell,
+      .feature-cell.reminder-cell,
+      .feature-cell.filter-cell { grid-column: auto; transform: none; min-height: 340px; }
+      .feature-cell.filter-cell { display: flex; gap: 30px; align-items: stretch; }
+      .pricing-grid { grid-template-columns: 1fr; margin-top: 52px; }
+      .price-plan.plus { margin-top: 0; }
+      .lead-shell { margin-inline: -18px; }
+      .lead-copy h2 { font-size: clamp(3.4rem, 17vw, 5rem); }
+      .site-footer { flex-direction: column; }
     }
 
     @media (max-width: 420px) {
-      .nav-note span { display: none; }
-      .proof { align-items: flex-start; flex-direction: column; }
-      .proof-line { width: 48px; height: 1px; }
       .task-list { grid-template-columns: 1fr; }
       .tradeoffs { grid-template-columns: 1fr; }
       .signal-card { width: 174px; }
+      .tradeoff-demo { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #f2f2eb;
+        --paper: #151515;
+        --white: #f8f8f1;
+        --muted: #b9b9b0;
+        --surface: #1c1c1b;
+        --surface-2: #242422;
+        --line: rgba(242,242,235,.18);
+        --shadow: 0 28px 70px rgba(0,0,0,.34);
+      }
+      body { background: radial-gradient(circle at 84% 13%, rgba(233,255,84,.16), transparent 24rem), linear-gradient(135deg, var(--surface), var(--paper) 58%, var(--surface-2)); }
+      body::before { background-image: radial-gradient(rgba(242,242,235,.1) .65px, transparent .65px); }
+      .brand-mark, .button.primary { background: #f2f2eb; color: #111111; }
+      .replay, .signal-card { color: #111111; }
+      .app, .lead-shell, .feature-story, .feature-cell, .price-plan, .field input, .field select { border-color: var(--ink); }
+      .app { background: #fffef9; color: #111111; box-shadow: var(--shadow), 12px 12px 0 #f2f2eb; }
+      .app .insight { color: #111111; }
+      .app .insight .focus-meta, .app .score-copy, .app .reminder, .app .insight-kicker { color: #66645e; }
+      .app .tradeoff p { color: #54514b; }
+      .app .ai-state, .app .tradeoff, .app .channel { border-color: rgba(17,17,17,.16); }
+      .app .channel { color: #111111; background: #fffef9; }
+      .feature-cell.tradeoff-cell { background: #f2f2eb; color: #111111; }
+      .tradeoff-cell p { color: rgba(17,17,17,.7); }
+      .tradeoff-demo div { border-color: rgba(17,17,17,.22); }
+      .tradeoff-demo strong { color: #111111; }
+      .priority-step.is-next { color: #111111; }
+      .field-error { color: #ff8c7c; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
       .app { transform: none; }
+      .reveal { opacity: 1; transform: none; }
     }
   </style>
 </head>
 <body>
   <main class="page-shell">
     <nav class="nav" aria-label="Primary navigation">
-      <a class="brand" href="#top" aria-label="Fokus home">
+      <a class="brand" href="#top">
         <span class="brand-mark" aria-hidden="true">F</span>
         FOKUS
       </a>
-      <div class="nav-note"><span>AI prioritization is ready</span></div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#join">Join the waitlist</a>
+      </div>
     </nav>
 
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow">The planner that thinks with you</p>
-        <h1 id="hero-title">Do what matters. <span class="headline-accent">First.</span></h1>
-        <p class="intro">Fokus weighs urgency, effort, and tradeoffs to turn a crowded task list into one clear next move—then reminds you before it slips.</p>
+        <h1 id="hero-title">Know what matters. <span class="headline-accent">First.</span></h1>
+        <p class="intro">Fokus ranks your tasks, explains each choice, and reminds you when it is time to move.</p>
 
         <div class="actions">
-          <a class="button primary" href="#planner">Explore the planner <span class="arrow" aria-hidden="true">→</span></a>
-          <button class="button" id="reorderButton" type="button">Watch AI sort</button>
-        </div>
-
-        <div class="proof" aria-label="Product highlights">
-          <span><strong>01</strong> AI-ranked priorities</span>
-          <span class="proof-line" aria-hidden="true"></span>
-          <span><strong>02</strong> Editable pro / con analysis</span>
+          <a class="button primary" href="#join">Join the waitlist <span class="arrow" aria-hidden="true">→</span></a>
+          <button class="button" id="reorderButton" type="button">See it work</button>
         </div>
       </div>
 
       <div class="visual-wrap" id="planner" aria-label="Animated preview of the Fokus task planner">
         <div class="orbit" aria-hidden="true"></div>
-        <button class="replay" id="replayButton" type="button" aria-label="Replay AI task prioritization">↻ Re-rank</button>
+        <button class="replay" id="replayButton" type="button">↻ Re-rank</button>
 
         <article class="app" id="appPreview">
           <section class="sidebar" aria-label="Today's prioritized tasks">
@@ -566,6 +840,142 @@
           <p class="signal-copy" id="signalCopy">Deadline moved closer. Score increased to 92.</p>
         </aside>
       </div>
+    </section>
+
+    <section class="section" id="features" aria-labelledby="features-title">
+      <div class="reveal">
+        <h2 class="section-title" id="features-title">A calmer way through the pile.</h2>
+        <p class="section-copy">Fokus turns urgency, effort, and consequences into one practical order you can still change.</p>
+      </div>
+
+      <div class="feature-story reveal">
+        <img class="feature-photo" src="assets/fokus-workspace.webp" alt="A focused professional reviewing a task list beside a laptop" width="1600" height="1067" loading="lazy">
+        <div class="feature-story-copy">
+          <div>
+            <h3>Priority without guesswork</h3>
+            <p>Every new deadline or dependency reshapes the list, so the next useful task stays visible.</p>
+          </div>
+          <div class="priority-rail" aria-label="Example task priority order">
+            <div class="priority-step is-next"><strong>1</strong><span>Send proposal</span><span>Next</span></div>
+            <div class="priority-step"><strong>2</strong><span>Review feedback</span><span>Later</span></div>
+            <div class="priority-step"><strong>3</strong><span>Book appointment</span><span>Friday</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature-cell tradeoff-cell reveal">
+          <div>
+            <h3>See the tradeoff</h3>
+            <p>Fokus explains why a task moved up, then lets you edit the reasoning when context changes.</p>
+          </div>
+          <div class="tradeoff-demo" aria-label="Example upside and risk analysis">
+            <div><strong>Upside</strong>Unblocks a decision and protects the delivery date.</div>
+            <div><strong>Watch out</strong>Needs focused time before the afternoon fills up.</div>
+          </div>
+        </article>
+
+        <article class="feature-cell reminder-cell reveal">
+          <div>
+            <h3>Reminders that arrive in time</h3>
+            <p>Choose in-app, email, or push. Fokus schedules the nudge around the task, not a generic alarm.</p>
+          </div>
+          <div class="reminder-demo" aria-label="Reminder channels">
+            <span>In-app reminder</span>
+            <span>Email summary</span>
+            <span>Push notification</span>
+          </div>
+        </article>
+
+        <article class="feature-cell filter-cell reveal">
+          <div>
+            <h3>Find the right view fast</h3>
+            <p>Search and filter by status, due date, or priority without losing your current plan.</p>
+          </div>
+          <div class="filter-demo" aria-label="Available task filters">
+            <span>Open</span><span>In progress</span><span>Due today</span><span>High priority</span><span>Done</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="pricing" aria-labelledby="pricing-title">
+      <div class="pricing-head reveal">
+        <h2 class="section-title" id="pricing-title">Start free. Add the deeper thinking when you need it.</h2>
+        <p class="section-copy">Simple pricing for one person and one busy life. Cancel whenever your routine changes.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <article class="price-plan reveal">
+          <div class="plan-name">Solo</div>
+          <div class="plan-price"><strong>$0</strong><span>forever</span></div>
+          <p class="plan-intro">A clear daily order for the essentials.</p>
+          <ul class="plan-list">
+            <li>AI task ranking</li>
+            <li>In-app reminders</li>
+            <li>Status and due-date filters</li>
+          </ul>
+          <button class="button plan-button" type="button" data-plan="Solo">Choose plan</button>
+        </article>
+
+        <article class="price-plan plus reveal">
+          <span class="plan-note">Recommended</span>
+          <div class="plan-name">Plus</div>
+          <div class="plan-price"><strong>$8</strong><span>per month</span></div>
+          <p class="plan-intro">More context, more channels, and fewer dropped details.</p>
+          <ul class="plan-list">
+            <li>Everything in Solo</li>
+            <li>Editable pro and con analysis</li>
+            <li>Email and push reminders</li>
+            <li>Advanced priority filters</li>
+          </ul>
+          <button class="button primary plan-button" type="button" data-plan="Plus">Choose plan</button>
+        </article>
+      </div>
+    </section>
+
+    <section class="section lead-section" id="join" aria-labelledby="join-title">
+      <div class="lead-shell reveal">
+        <div class="lead-copy">
+          <h2 id="join-title">Make the next move obvious.</h2>
+          <p>Join the waitlist for early access. Tell us which plan fits, and we will send launch details by email.</p>
+        </div>
+
+        <div class="lead-form-wrap">
+          <form class="lead-form" id="leadForm" novalidate>
+            <div class="field">
+              <label for="leadName">Name</label>
+              <input id="leadName" name="name" type="text" autocomplete="name" placeholder="Your name" required>
+              <span class="field-error" id="nameError" aria-live="polite"></span>
+            </div>
+            <div class="field">
+              <label for="leadEmail">Email</label>
+              <input id="leadEmail" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required>
+              <span class="field-error" id="emailError" aria-live="polite"></span>
+            </div>
+            <div class="field">
+              <label for="leadPlan">Plan interest</label>
+              <select id="leadPlan" name="plan">
+                <option value="Solo">Solo</option>
+                <option value="Plus">Plus</option>
+              </select>
+              <span class="field-error" aria-hidden="true"></span>
+            </div>
+            <button class="button primary submit-button" id="submitLead" type="submit">Join the waitlist</button>
+            <p class="form-note">No spam. One launch email and the occasional product update.</p>
+          </form>
+
+          <div class="form-success" id="formSuccess" role="status" aria-live="polite">
+            <h3>You are on the list.</h3>
+            <p>Thanks for your interest in Fokus. We will send access details to <strong id="successEmail"></strong>.</p>
+          </div>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <span>Fokus helps individuals decide what to do next.</span>
+        <span>Built for clearer days.</span>
+      </footer>
     </section>
   </main>
 
@@ -642,6 +1052,58 @@
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       autoTimer = window.setInterval(() => renderScenario(scenarioIndex + 1), 5600);
     }
+
+    const revealItems = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.16 });
+      revealItems.forEach((item) => revealObserver.observe(item));
+    } else {
+      revealItems.forEach((item) => item.classList.add('is-visible'));
+    }
+
+    const leadForm = document.getElementById('leadForm');
+    const nameInput = document.getElementById('leadName');
+    const emailInput = document.getElementById('leadEmail');
+    const planInput = document.getElementById('leadPlan');
+    const submitLead = document.getElementById('submitLead');
+
+    document.querySelectorAll('.plan-button').forEach((button) => {
+      button.addEventListener('click', () => {
+        planInput.value = button.dataset.plan;
+        document.getElementById('join').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.setTimeout(() => nameInput.focus(), 450);
+      });
+    });
+
+    leadForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      document.getElementById('nameError').textContent = name ? '' : 'Please enter your name.';
+      document.getElementById('emailError').textContent = validEmail ? '' : 'Enter a valid email address.';
+
+      if (!name || !validEmail) {
+        (name ? emailInput : nameInput).focus();
+        return;
+      }
+
+      submitLead.disabled = true;
+      submitLead.classList.add('is-loading');
+      submitLead.textContent = 'Saving your place...';
+
+      window.setTimeout(() => {
+        leadForm.hidden = true;
+        document.getElementById('successEmail').textContent = email;
+        document.getElementById('formSuccess').classList.add('is-visible');
+      }, 900);
+    });
   </script>
 </body>
 </html>
