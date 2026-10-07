@@ -1,1 +1,27 @@
 .DS_Store
+node_modules
+.next
+out
+npm-debug.log*
+*.tsbuildinfo
+
+# Local environment secrets
+.env
+.env.local
+.env*.local
+!.env.example
+
+# InsForge & AI agent skills
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
